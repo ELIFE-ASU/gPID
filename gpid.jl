@@ -25,6 +25,7 @@ const s = ArgParseSettings(version="1.0", add_version = true)
         help = "the columns to extract. If none are provided, all the the column names in the file will be printed to standard output."
         arg_type = Symbol
         nargs = '+'
+        required = true
 end
 
 args = parse_args(s)
