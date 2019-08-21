@@ -50,7 +50,7 @@ end
 
 function columns(input::String)
     df = CSV.read(input; ignoreemptylines=true)
-    println("Columns in \"$input)\":")
+    println("Columns in \"$input\":")
     foreach(n -> println("  • $(n)"), names(df))
 end
 
