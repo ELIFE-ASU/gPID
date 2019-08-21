@@ -8,4 +8,4 @@ auto pid(Data<int> const &data, std::string stimulus_name, int nbin) -> inform_p
 
 auto source_name(inform_pid_source const *src) -> std::string;
 
-auto const source_label(inform_pid_source const *src) -> std::string;
+auto source_label(inform_pid_source const *src) -> std::string;

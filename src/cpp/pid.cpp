@@ -45,7 +45,7 @@ auto source_name(inform_pid_source const *src) -> std::string {
     return name.substr(0, name.size()-1);
 }
 
-auto const source_label(inform_pid_source const *src) -> std::string {
+auto source_label(inform_pid_source const *src) -> std::string {
     std::stringstream labelstream;
     labelstream << '(' << source_name(src) << " | "
                 << ((src->imin < 1e-6) ? 0 : src->imin) << ", "

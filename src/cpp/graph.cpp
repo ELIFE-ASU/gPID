@@ -1,6 +1,7 @@
 #include "graph.h"
 #include <algorithm>
 #include <graphviz/gvc.h>
+#include <sstream>
 
 static auto tohexcolor(double max, double value) -> std::string {
     if (max < 1e-6) {
