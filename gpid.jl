@@ -22,7 +22,8 @@ const s = ArgParseSettings(version="1.0", add_version = true)
         arg_type = Symbol
         default = Symbol("Region-type")
     "columns"
-        help = "the columns to extract. If none are provided, all the the column names in the file will be printed to standard output."
+        help = """the columns to extract. If none are provided, all the the column names in the file
+                  will be printed to standard output."""
         arg_type = Symbol
         nargs = '+'
         required = true
