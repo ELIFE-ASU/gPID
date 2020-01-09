@@ -67,6 +67,12 @@ version = "3.1.0"
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
+[[DrWatson]]
+deps = ["FileIO", "LibGit2", "Pkg", "Random", "Requires"]
+git-tree-sha1 = "e906895e85fcd423d34df9ad6b65f318ecf1b4b7"
+uuid = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+version = "1.7.1"
+
 [[Eolas]]
 deps = ["DataFrames", "Printf"]
 git-tree-sha1 = "79f3fe612e8919667ebb48e8cc77a5dc626fec40"
@@ -74,6 +80,12 @@ repo-rev = "master"
 repo-url = "https://github.com/dglmoore/Eolas.jl"
 uuid = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
 version = "0.1.0"
+
+[[FileIO]]
+deps = ["Pkg"]
+git-tree-sha1 = "74585bf1f7ed7259e166011e89f49363d7fa89a6"
+uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+version = "1.2.1"
 
 [[FilePathsBase]]
 deps = ["Dates", "LinearAlgebra", "Printf", "Test", "UUIDs"]
@@ -182,6 +194,12 @@ deps = ["Pkg"]
 git-tree-sha1 = "7b1d07f411bc8ddb7977ec7f377b97b158514fe0"
 uuid = "189a3867-3050-52da-a836-e630ba90ab69"
 version = "0.2.0"
+
+[[Requires]]
+deps = ["UUIDs"]
+git-tree-sha1 = "999513b7dea8ac17359ed50ae8ea089e4464e35e"
+uuid = "ae029012-a4dd-5104-9daa-d747884805df"
+version = "1.0.0"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
