@@ -62,7 +62,8 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Eolas]]
-git-tree-sha1 = "23c47ec84aa73384089d661043f224a982a911df"
+deps = ["DataFrames", "Printf"]
+git-tree-sha1 = "79f3fe612e8919667ebb48e8cc77a5dc626fec40"
 repo-rev = "master"
 repo-url = "https://github.com/dglmoore/Eolas.jl"
 uuid = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
