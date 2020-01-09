@@ -1,3 +1,3 @@
-using DataFrames, Eolas, Statistics
+using DataFrames, Eolas
 
 include("bin.jl")
