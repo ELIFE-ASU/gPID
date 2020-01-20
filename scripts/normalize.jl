@@ -19,8 +19,17 @@ function renamefiles(dir::AbstractString)
     end
 end
 
+function cleanupcsv(dir)
+    for file in filter(f -> occursin(r"\.csv$", f), readdir(dir))
+        filepath = joinpath(dir, file)
+        @info "Formatting file" filepath
+        run(`sed -i 's/,\s*$//g' $filepath`)
+    end
+end
+
 function main()
     renamefiles(ARGS[1])
+    cleanupcsv(ARGS[1])
 end
 
 main()
