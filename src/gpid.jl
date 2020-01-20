@@ -6,10 +6,10 @@ function Eolas.pid(::Type{T}, df::DataFrame, stimulus, k::Int) where T
     naman = let allnames = names(df)
         allnames[allnames .!= stimulus]
     end
-    d = Dict{Tuple,Hasse}()
+    results = Dict{Symbol,Any}[]
     for responses = subsets(naman, k)
-        h = pid(T, df[:, stimulus], transpose(Array(df[:, responses])), responses)
-        d[(stimulus, responses...)] = h
+        lattice = pid(T, df[:, stimulus], transpose(Array(df[:, responses])), responses)
+        push!(results, Dict(:target => stimulus, :sources => responses, :lattice => lattice))
     end
-    d
+    results
 end

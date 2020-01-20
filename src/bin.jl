@@ -1,4 +1,4 @@
-using Discretizers
+using Discretizers, Statistics
 
 struct ThresholdBinner{R <: Real} <: DiscretizationAlgorithm
     θ::R
