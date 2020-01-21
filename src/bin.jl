@@ -39,6 +39,8 @@ function bin(xs::AbstractArray{<:Real}, alg::DiscretizationAlgorithm)
     encode(LinearDiscretizer(binedges(alg, xs)), xs)
 end
 
+bin(xs::AbstractArray{<:Integer}, alg::DiscretizationAlgorithm) = bin(Array{Float64}(xs), alg)
+
 bin(xs::AbstractArray{Symbol}, args...) = encode(CategoricalDiscretizer(xs), xs)
 bin(xs::AbstractArray{<:AbstractString}, args...) = encode(CategoricalDiscretizer(xs), xs)
 
