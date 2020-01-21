@@ -42,5 +42,7 @@ function gpid!(df::DataFrame, target::Symbol, numsources::Int;
     df = bin!(df; algo=algo, replace=true)
 
     verbose && @info "Computing information decompositions..."
-    pid(WilliamsBeer, df, target, numsources)
+    results = pid(WilliamsBeer, df, target, numsources)
+    foreach(r -> r[:algorithm] = algo, results)
+    results
 end

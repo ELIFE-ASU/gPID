@@ -39,10 +39,12 @@ function save(output::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
 
     for result in results
         input = result[:input]
+        algorithm = result[:algorithm]
         sources = join(string.(result[:sources]), "_")
 
         filename = savename(Dict(:input => first(splitext(basename(input))),
                                  :target => target,
+                                 :algorithm => string(algorithm),
                                  :sources => sources), "bson")
 
         wsave(datadir(output, filename), result)
