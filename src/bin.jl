@@ -41,3 +41,5 @@ end
 
 bin(xs::AbstractArray{Symbol}, args...) = encode(CategoricalDiscretizer(xs), xs)
 bin(xs::AbstractArray{<:AbstractString}, args...) = encode(CategoricalDiscretizer(xs), xs)
+
+bin(df::DataFrame, args...; kwargs...) = bin!(copy(df), args...; kwargs...)

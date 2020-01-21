@@ -39,7 +39,19 @@ function gpid!(df::DataFrame, target::Symbol, numsources::Int;
               verbose::Bool=true)
 
     verbose && @info "Binning data..."
-    df = bin!(df; algo=algo, replace=true)
+    ef = bin(df; algo=algo, replace=true)
+    if any(Array(aggregate(ef, maximum) .< 2))
+        algo = MeanBinner()
+        @warn "Binning resulted in fewer than two bins; falling back to" algo
+        df = bin(df; algo=algo, replace=true)
+        if any(Array(aggregate(df, maximum) .< 2))
+            @error """Default binning method resulted in fewer than two bins;
+                      do all of your data columns have at least two distinct values?"""
+            throw(ErrorException("invalid binning"))
+        end
+    else 
+        df = ef
+    end
 
     verbose && @info "Computing information decompositions..."
     results = pid(WilliamsBeer, df, target, numsources)
