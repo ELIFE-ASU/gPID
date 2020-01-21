@@ -1,18 +1,9 @@
-using ArgParse, Base.Meta, DrWatson, CSV, Printf
+using ArgParse, Base.Meta, CSV, DrWatson, Parameters, Printf
 
 include(srcdir("gpid.jl"))
 
-function validbinner(ex::Expr)
-    algorithm = try
-        eval(ex)
-    catch MethodError
-        false
-    end
-    isa(algorithm, DiscretizationAlgorithm)
-end
-
 ArgParse.parse_item(::Type{Symbol}, x::AbstractString) = Symbol(x)
-ArgParse.parse_item(::Type{Expr}, x::AbstractString) = Meta.parse(x)
+ArgParse.parse_item(::Type{DiscretizationAlgorithm}, x::AbstractString) = eval(Meta.parse(x))
 
 const s = ArgParseSettings(version="1.0", add_version=true)
 
@@ -28,9 +19,8 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         required = true
     "--algorithm", "-a"
         help = "binning algorithm"
-        arg_type = Expr
-        range_tester = validbinner
-        default = :(MeanBinner())
+        arg_type = DiscretizationAlgorithm
+        default = MeanBinner()
     "--target", "-t"
         help = "target variable name"
         arg_type = Symbol
@@ -42,56 +32,37 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         required = true
 end
 
-args = parse_args(s)
+@unpack input, output, algorithm, target, numsources = parse_args(s)
 
-function processfile(input::AbstractString,
-                     output::AbstractString,
-                     algo::DiscretizationAlgorithm,
-                     target::Symbol,
-                     numsources::Int)
-    @info "Reading..." file=input
-    df = DataFrame(CSV.File(input; ignoreemptylines=true))
+function save(output::AbstractString, results::AbstractVector{Dict{Symbol,Any}}; verbose::Bool=true)
+    verbose && @info "Saving results..." outdir=datadir(output)
 
-    processdf(df, input, output, algo, target, numsources)
-end
-
-function processdf(df::DataFrame,
-                   input::AbstractString,
-                   output::AbstractString,
-                   algo::DiscretizationAlgorithm,
-                   target::Symbol,
-                   numsources::Int)
-    @info "Binning data..."
-    bin!(df; algo=algo, replace=true)
-
-    @info "Computing information decompositions..."
-    results = pid(WilliamsBeer, df, target, numsources)
-
-    @info "Saving results..." outdir=datadir(output)
     for result in results
+        input = result[:input]
         sources = join(string.(result[:sources]), "_")
+
         filename = savename(Dict(:input => first(splitext(basename(input))),
                                  :target => target,
                                  :sources => sources), "bson")
 
-        result[:input] = input
         wsave(datadir(output, filename), result)
     end
 end
 
-if isfile(args["input"])
-    processfile(args["input"], args["output"],
-                eval(args["algorithm"]),
-                args["target"], args["numsources"])
-elseif isdir(args["input"])
-    algo = eval(args["algorithm"])
-    files = joinpath.(args["input"], readdir(args["input"]))
+if isfile(input)
+    results = gpid(input, target, numsources; algo=algorithm, verbose=true)
+    save(output, results; verbose=true)
+elseif isdir(input)
+    files = joinpath.(input, readdir(input))
     for input in files
-        processfile(input, args["output"], algo, args["target"], args["numsources"])
+        results = gpid(input, target, numsources; algo=algorithm, verbose=true)
+        save(output, results; verbose=true)
     end
 
     whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
-    processdf(whole, "whole", args["output"], algo, args["target"], args["numsources"])
+    results = gpid(whole, target, numsources; algo=algorithm, verbose=true)
+    foreach(r -> r[:input] = "whole", results)
+    save(output, results; verbose=true)
 else
-    @error "Path is neither a file nor a directory" path=args["input"]
+    @error "Path is neither a file nor a directory" path=input
 end
