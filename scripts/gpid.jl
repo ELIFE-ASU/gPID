@@ -50,8 +50,17 @@ function processfile(input::AbstractString,
                      target::Symbol,
                      numsources::Int)
     @info "Reading..." file=input
-    df = CSV.read(input)
+    df = DataFrame(CSV.File(input; ignoreemptylines=true))
 
+    processdf(df, input, output, algo, target, numsources)
+end
+
+function processdf(df::DataFrame,
+                   input::AbstractString,
+                   output::AbstractString,
+                   algo::DiscretizationAlgorithm,
+                   target::Symbol,
+                   numsources::Int)
     @info "Binning data..."
     bin!(df; algo=algo, replace=true)
 
@@ -66,7 +75,7 @@ function processfile(input::AbstractString,
                                  :sources => sources), "bson")
 
         result[:input] = input
-        wsave(datadir(args["output"], filename), result)
+        wsave(datadir(output, filename), result)
     end
 end
 
@@ -74,6 +83,15 @@ if isfile(args["input"])
     processfile(args["input"], args["output"],
                 eval(args["algorithm"]),
                 args["target"], args["numsources"])
+elseif isdir(args["input"])
+    algo = eval(args["algorithm"])
+    files = joinpath.(args["input"], readdir(args["input"]))
+    for input in files
+        processfile(input, args["output"], algo, args["target"], args["numsources"])
+    end
+
+    whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
+    processdf(whole, "whole", args["output"], algo, args["target"], args["numsources"])
 else
-    @error "Path is not a file; cannot process yet" path=args["input"]
+    @error "Path is neither a file nor a directory" path=args["input"]
 end
