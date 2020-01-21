@@ -47,7 +47,7 @@ function save(output::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
                                  :algorithm => string(algorithm),
                                  :sources => sources), "bson")
 
-        wsave(datadir(output, filename), result)
+        @tagsave datadir(output, filename) result; safe=true
     end
 end
 
