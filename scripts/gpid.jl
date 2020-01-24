@@ -25,9 +25,12 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         arg_type = Int
         range_tester = x -> 0 < x < 5
         required = true
+    "--verbose", "-v"
+        help = "verbose status output"
+        action = :store_true
 end
 
-@unpack input, algorithm, target, numsources = parse_args(s)
+@unpack input, algorithm, target, numsources, verbose = parse_args(s)
 
 function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}}; verbose::Bool=true)
     verbose && @info "Saving results..." outdir
@@ -54,21 +57,21 @@ const inputpath = datadir("sims", input)
 if isfile(inputpath)
     outdir = datadir("results", dirname(input))
 
-    results = gpid(inputpath, target, numsources; algo=algorithm, verbose=true)
-    save(outdir, results; verbose=true)
+    results = gpid(inputpath, target, numsources; algo=algorithm, verbose=verbose)
+    save(outdir, results; verbose=verbose)
 elseif isdir(inputpath)
     outdir = datadir("results", input)
 
     files = joinpath.(inputpath, readdir(inputpath))
     for input in files
-        results = gpid(input, target, numsources; algo=algorithm, verbose=true)
-        save(outdir, results; verbose=true)
+        results = gpid(input, target, numsources; algo=algorithm, verbose=verbose)
+        save(outdir, results; verbose=verbose)
     end
 
     whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
-    results = gpid(whole, target, numsources; algo=algorithm, verbose=true)
+    results = gpid(whole, target, numsources; algo=algorithm, verbose=verbose)
     foreach(r -> r[:input] = "whole", results)
-    save(outdir, results; verbose=true)
+    save(outdir, results; verbose=verbose)
 else
     @error "Path is neither a file nor a directory" path=input
 end
