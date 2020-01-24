@@ -13,9 +13,6 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         arg_type = String
         range_tester = ispath
         required = true
-    "--output", "-o"
-        help = "output directory"
-        arg_type = String
         required = true
     "--algorithm", "-a"
         help = "binning algorithm"
@@ -32,10 +29,10 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         required = true
 end
 
-@unpack input, output, algorithm, target, numsources = parse_args(s)
+@unpack input, algorithm, target, numsources = parse_args(s)
 
-function save(output::AbstractString, results::AbstractVector{Dict{Symbol,Any}}; verbose::Bool=true)
-    verbose && @info "Saving results..." outdir=datadir(output)
+function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}}; verbose::Bool=true)
+    verbose && @info "Saving results..." outdir
 
     for result in results
         input = result[:input]
@@ -47,24 +44,30 @@ function save(output::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
                                  :algorithm => string(algorithm),
                                  :sources => sources), "bson")
 
-        @tagsave datadir(output, filename) result; safe=true
+        @tagsave joinpath(outdir, filename) result; safe=true
     end
 end
 
-if isfile(input)
-    results = gpid(input, target, numsources; algo=algorithm, verbose=true)
-    save(output, results; verbose=true)
-elseif isdir(input)
-    files = joinpath.(input, readdir(input))
+const inputpath = datadir("sims", input)
+
+if isfile(inputpath)
+    outdir = datadir("results", dirname(input))
+
+    results = gpid(inputpath, target, numsources; algo=algorithm, verbose=true)
+    save(outdir, results; verbose=true)
+elseif isdir(inputpath)
+    outdir = datadir("results", input)
+
+    files = joinpath.(inputpath, readdir(inputpath))
     for input in files
         results = gpid(input, target, numsources; algo=algorithm, verbose=true)
-        save(output, results; verbose=true)
+        save(outdir, results; verbose=true)
     end
 
     whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
     results = gpid(whole, target, numsources; algo=algorithm, verbose=true)
     foreach(r -> r[:input] = "whole", results)
-    save(output, results; verbose=true)
+    save(outdir, results; verbose=true)
 else
     @error "Path is neither a file nor a directory" path=input
 end
