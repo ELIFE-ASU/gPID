@@ -11,8 +11,6 @@ const s = ArgParseSettings(version="1.0", add_version=true)
     "--input", "-i"
         help = "input file path"
         arg_type = String
-        range_tester = ispath
-        required = true
         required = true
     "--algorithm", "-a"
         help = "binning algorithm"
