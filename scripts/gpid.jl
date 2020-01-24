@@ -33,6 +33,9 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
     verbose && @info "Saving results..." outdir
 
     for result in results
+        if result[:input] != "whole"
+            result[:input] = relpath(result[:input], datadir("sims"))
+        end
         input = result[:input]
         algorithm = result[:algorithm]
         sources = join(string.(result[:sources]), "_")
