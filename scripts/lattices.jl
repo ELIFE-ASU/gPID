@@ -1,4 +1,6 @@
-using ArgParse, DataFrames, DrWatson, Discretizers, Eolas, Parameters
+using ArgParse, DrWatson, Parameters
+
+include(srcdir("gpid.jl"))
 
 const s = ArgParseSettings(version="1.0", add_version=true)
 
@@ -6,14 +8,16 @@ const s = ArgParseSettings(version="1.0", add_version=true)
     "--input", "-i"
         help = "input file path"
         arg_type = String
-        required = true
+        default = ""
+    "--verbose", "-v"
+        help = "enable verbose output"
+        action = :store_true
 end
 
-@unpack input = parse_args(s)
+@unpack input, verbose = parse_args(s)
 
-const inputdir = datadir(input)
+df = collect_results(datadir("results", input); subfolders=true)
 
-df = collect_results(inputdir; subfolders=true)
 for row in eachrow(df)
     @unpack input, algorithm, target = row
     sources = join(string.(row[:sources]), "_")
@@ -22,8 +26,13 @@ for row in eachrow(df)
                              :target => target,
                              :algorithm => string(algorithm),
                              :sources => sources), "svg")
-    filepath = projectdir("plots", "lattice", relpath(dirname(row[:path]), inputdir), filename)
+    filepath = projectdir("plots", "lattice", dirname(input), filename)
     mkpath(dirname(filepath))
 
-    graphviz(filepath, prune(row[:lattice]))
+    verbose && @info "Writing lattice for" input algorithm target sources=row[:sources] to=filepath
+    try
+        graphviz(filepath, prune(row[:lattice]))
+    catch
+        @warn "Pruned lattice is empty; no figure generated"
+    end
 end
