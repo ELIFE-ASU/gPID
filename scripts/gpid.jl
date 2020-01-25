@@ -51,9 +51,7 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
     verbose && @info "Saving results..." outdir
 
     for result in results
-        if result[:input] != "whole"
-            result[:input] = relpath(result[:input], datadir("sims"))
-        end
+        result[:input] = relpath(result[:input], datadir("sims"))
         input = result[:input]
         algorithm = result[:algorithm]
         sources = join(string.(result[:sources]), "_")
@@ -90,7 +88,7 @@ elseif isdir(inputpath)
 
         whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
         results = gpid(whole, target, n; algo=algorithm, verbose=verbose)
-        foreach(r -> r[:input] = "whole", results)
+        foreach(r -> r[:input] = datadir("sims", inputpath, "whole"), results)
         save(outdir, results; verbose=verbose)
     end
 else
