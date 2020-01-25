@@ -8,14 +8,29 @@ ArgParse.parse_item(::Type{DiscretizationAlgorithm}, x::AbstractString) = eval(M
 const s = ArgParseSettings(version="1.0", add_version=true)
 
 @add_arg_table s begin
+    "--verbose", "-v"
+        help = "verbose status output"
+        action = :store_true
+end
+
+add_arg_group(s, "Input and Output")
+@add_arg_table s begin
     "--input", "-i"
         help = "input file path"
         arg_type = String
         required = true
+end
+
+add_arg_group(s, "Discretization algorithm")
+@add_arg_table s begin
     "--algorithm", "-a"
-        help = "binning algorithm"
+        help = "discretization algorithm"
         arg_type = DiscretizationAlgorithm
         default = MeanBinner()
+end
+
+add_arg_group(s, "Targets and Sources")
+@add_arg_table s begin
     "--target", "-t"
         help = "target variable name"
         arg_type = Symbol
@@ -26,9 +41,6 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         nargs = '+'
         range_tester = x -> 0 < x < 5
         required = true
-    "--verbose", "-v"
-        help = "verbose status output"
-        action = :store_true
 end
 
 @unpack input, algorithm, target, numsources, verbose = parse_args(s)
