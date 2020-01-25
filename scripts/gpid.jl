@@ -23,6 +23,7 @@ const s = ArgParseSettings(version="1.0", add_version=true)
     "--numsources", "-s"
         help = "number of source variables, must be between 1 and 5 (inclusive)"
         arg_type = Int
+        nargs = '+'
         range_tester = x -> 0 < x < 5
         required = true
     "--verbose", "-v"
@@ -31,6 +32,8 @@ const s = ArgParseSettings(version="1.0", add_version=true)
 end
 
 @unpack input, algorithm, target, numsources, verbose = parse_args(s)
+
+numsources = unique(sort(numsources))
 
 function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}}; verbose::Bool=true)
     verbose && @info "Saving results..." outdir
@@ -57,21 +60,27 @@ const inputpath = datadir("sims", input)
 if isfile(inputpath)
     outdir = datadir("results", dirname(input))
 
-    results = gpid(inputpath, target, numsources; algo=algorithm, verbose=verbose)
-    save(outdir, results; verbose=verbose)
+    for n in numsources
+        verbose && @info "Number of sources: $n"
+        results = gpid(inputpath, target, n; algo=algorithm, verbose=verbose)
+        save(outdir, results; verbose=verbose)
+    end
 elseif isdir(inputpath)
     outdir = datadir("results", input)
 
     files = joinpath.(inputpath, readdir(inputpath))
-    for input in files
-        results = gpid(input, target, numsources; algo=algorithm, verbose=verbose)
+    for n in numsources
+        verbose && @info "Number of sources: $n"
+        for input in files
+            results = gpid(input, target, n; algo=algorithm, verbose=verbose)
+            save(outdir, results; verbose=verbose)
+        end
+
+        whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
+        results = gpid(whole, target, n; algo=algorithm, verbose=verbose)
+        foreach(r -> r[:input] = "whole", results)
         save(outdir, results; verbose=verbose)
     end
-
-    whole = vcat(DataFrame.(CSV.File.(files; ignoreemptylines=true))...)
-    results = gpid(whole, target, numsources; algo=algorithm, verbose=verbose)
-    foreach(r -> r[:input] = "whole", results)
-    save(outdir, results; verbose=verbose)
 else
     @error "Path is neither a file nor a directory" path=input
 end
