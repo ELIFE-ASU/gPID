@@ -66,21 +66,21 @@ end
 
 @recipe function f(g::GpidPlot; dotplot=true, mode=:density)
     df = g.args[1]
-    func = g.args[2]
+    field = g.args[2]
 
     ef = DataFrame(input = String[],
                    name = String[],
                    value = Float64[])
     for row in eachrow(df)
         for v in vertices(row.lattice)
-            value = func(v)
+            value = getproperty(payload(v), field)
             if !isapprox(value, zero(value), atol=1e-6)
                 push!(ef, (input=row.input, name=Eolas.prettyname(v), value=value))
             end
         end
     end
 
-    names = unique(ef.name)
+    names = unique(sort(ef.name))
 
     samples = ef[ef.input .!= "whole",:]
     whole = ef[ef.input .== "whole",:]

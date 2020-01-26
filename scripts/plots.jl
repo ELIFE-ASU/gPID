@@ -2,7 +2,11 @@ using ArgParse, DrWatson, Parameters, Plots, Printf, StatsPlots
 
 include(srcdir("gpid.jl"))
 
-function gpidplots(df, ylabel, legend; verbose=true)
+function gpidplots(df, field; legend=false, verbose=true)
+    ylabel = field == :Π ? "Partial Information (bits)" :
+             field == :Iₘᵢₙ ? "Imin (bits)" :
+             throw(ArgumentError("payload field must be either :Π or :Iₘᵢₙ; got $field"))
+
     groups = groupby(df, [:simdir, :algorithm, :target, :sources])
     for (key, group) in zip(keys(groups), groups)
         @unpack simdir, algorithm, target, sources = key
@@ -10,20 +14,19 @@ function gpidplots(df, ylabel, legend; verbose=true)
         filename = savename(Dict(:target => target,
                                  :algorithm => string(algorithm),
                                  :sources => join(string.(sources), "_")), "svg")
-        filepath = projectdir("plots", "gpid", simdir, filename)
+        filepath = projectdir("plots", "gpid", simdir, string(field), filename)
         mkpath(dirname(filepath))
 
         verbose && @info "Plotting pid for" simdir algorithm target sources
 
-        Π = v -> payload(v).Π
         title = @sprintf "gPID (sources: %s)" join(string.(sources), " ")
         try
-            gpidplot(group, Π; title=title, ylabel=ylabel, legend=legend)
+            gpidplot(group, field; title=title, ylabel=ylabel, legend=legend)
             savefig(filepath)
         catch
             verbose && @error "plotting failed with :density mode; falling back to :uniform"
             !verbose && @error "plotting failed with :density mode; falling back to :uniform" target sources
-            gpidplot(group, Π; title=title, ylabel=ylabel, legend=legend, mode=:uniform)
+            gpidplot(group, field; title=title, ylabel=ylabel, legend=legend, mode=:uniform)
             savefig(filepath)
         end
     end
@@ -77,19 +80,23 @@ function main()
     add_arg_group(s, "gPID Plot Settings")
     @add_arg_table s begin
         "--no-gpid"
-            help = "skip gPID plots"
+            help = "skip all gPID plots (implies --no-pi and --no-imin)"
             dest_name = "nogpid"
+            action = :store_true
+        "--no-pi"
+            help = "skip Π plot"
+            dest_name = "noΠ"
+            action = :store_true
+        "--no-imin"
+            help = "skip Iₘᵢₙ plot"
+            dest_name = "noIₘᵢₙ"
             action = :store_true
         "--legend", "-l"
             help = "enable plot legends"
             action = :store_true
-        "--ylabel", "-y"
-            help = "label for the y-axis"
-            arg_type = String
-            default = "Partial Information (bits)"
     end
 
-    @unpack input, nolattice, nogpid, legend, ylabel, verbose = parse_args(s)
+    @unpack input, nolattice, nogpid, noΠ, noIₘᵢₙ, legend, verbose = parse_args(s)
 
     if nolattice && nogpid
         @warn "Both --no-lattice and --no-gpid provided; no plots generated"
@@ -103,8 +110,14 @@ function main()
     end
 
     if !nogpid
-        verbose && @info "Generating plots"
-        gpidplots(df, ylabel, legend; verbose=verbose)
+        if !noΠ
+            verbose && @info "Generating Π plots"
+            gpidplots(df, :Π; legend=legend, verbose=verbose)
+        end
+        if !noIₘᵢₙ
+            verbose && @info "Generating Iₘᵢₙ plots"
+            gpidplots(df, :Iₘᵢₙ; legend=legend, verbose=verbose)
+        end
     end
 end
 
