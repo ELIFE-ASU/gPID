@@ -51,12 +51,13 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
     verbose && @info "Saving results..." outdir
 
     for result in results
-        result[:input] = relpath(result[:input], datadir("sims"))
-        input = result[:input]
+        path = relpath(result[:input], datadir("sims"))
+        result[:simdir] = dirname(path)
+        input = result[:input] = basename(path)
         algorithm = result[:algorithm]
         sources = join(string.(result[:sources]), "_")
 
-        filename = savename(Dict(:input => first(splitext(basename(input))),
+        filename = savename(Dict(:input => first(splitext(input)),
                                  :target => target,
                                  :algorithm => string(algorithm),
                                  :sources => sources), "bson")

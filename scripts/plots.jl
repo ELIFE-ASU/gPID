@@ -3,27 +3,26 @@ using ArgParse, DrWatson, Parameters, Plots, Printf, StatsPlots
 include(srcdir("gpid.jl"))
 
 function gpidplots(df, ylabel, legend; verbose=true)
-    groups = groupby(df, [:input, :algorithm, :target, :sources])
+    groups = groupby(df, [:simdir, :algorithm, :target, :sources])
     for (key, group) in zip(keys(groups), groups)
-        @unpack input, algorithm, target = key
-        sources = join(string.(key.sources), "_")
+        @unpack simdir, algorithm, target, sources = key
 
         filename = savename(Dict(:target => target,
                                  :algorithm => string(algorithm),
-                                 :sources => sources), "svg")
-        filepath = projectdir("plots", "gpid", dirname(input), filename)
+                                 :sources => join(string.(sources), "_")), "svg")
+        filepath = projectdir("plots", "gpid", simdir, filename)
         mkpath(dirname(filepath))
 
-        verbose && @info "Plotting pid for" sim=dirname(input) algorithm target sources=key.sources
+        verbose && @info "Plotting pid for" simdir algorithm target sources
 
         Π = v -> payload(v).Π
-        title = @sprintf "gPID (sources: %s)" join(string.(key.sources), " ")
+        title = @sprintf "gPID (sources: %s)" join(string.(sources), " ")
         try
             gpidplot(group, Π; title=title, ylabel=ylabel, legend=legend)
             savefig(filepath)
         catch
             verbose && @error "plotting failed with :density mode; falling back to :uniform"
-            !verbose && @error "plotting failed with :density mode; falling back to :uniform" target=target sources=key.sources
+            !verbose && @error "plotting failed with :density mode; falling back to :uniform" target sources
             gpidplot(group, Π; title=title, ylabel=ylabel, legend=legend, mode=:uniform)
             savefig(filepath)
         end
@@ -32,19 +31,18 @@ end
 
 function lattices(df; verbose=true)
     for row in eachrow(df)
-        @unpack input, algorithm, target = row
-        sources = join(string.(row[:sources]), "_")
+        @unpack simdir, input, algorithm, target, sources, lattice = row
 
-        filename = savename(Dict(:input => first(splitext(basename(input))),
+        filename = savename(Dict(:input => first(splitext(input)),
                                  :target => target,
                                  :algorithm => string(algorithm),
-                                 :sources => sources), "svg")
-        filepath = projectdir("plots", "lattice", dirname(input), filename)
+                                 :sources => join(string.(sources), "_")), "svg")
+        filepath = projectdir("plots", "lattice", simdir, filename)
         mkpath(dirname(filepath))
 
-        verbose && @info "Writing lattice for" input algorithm target sources=row[:sources] to=filepath
+        verbose && @info "Writing lattice for" simdir input algorithm target sources to=filepath
         try
-            graphviz(filepath, prune(row[:lattice]))
+            graphviz(filepath, prune(lattice))
         catch
             @warn "Pruned lattice is empty; no figure generated"
         end
