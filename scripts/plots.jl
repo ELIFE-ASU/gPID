@@ -55,14 +55,14 @@ end
 function main()
     s = ArgParseSettings(version="1.0", add_version=true)
 
-    @add_arg_table s begin
+    @add_arg_table! s begin
         "--verbose", "-v"
             help = "enable verbose output"
             action = :store_true
     end
 
     add_arg_group!(s, "Input and Output")
-    @add_arg_table s begin
+    @add_arg_table! s begin
         "--input", "-i"
             help = "input file path"
             arg_type = String
@@ -70,7 +70,7 @@ function main()
     end
 
     add_arg_group!(s, "Lattice Settings")
-    @add_arg_table s begin
+    @add_arg_table! s begin
         "--no-lattice"
             help = "skip lattice plots"
             dest_name = "nolattice"
@@ -78,7 +78,7 @@ function main()
     end
 
     add_arg_group!(s, "gPID Plot Settings")
-    @add_arg_table s begin
+    @add_arg_table! s begin
         "--no-gpid"
             help = "skip all gPID plots (implies --no-pi and --no-imin)"
             dest_name = "nogpid"
