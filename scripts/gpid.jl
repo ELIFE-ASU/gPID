@@ -39,7 +39,7 @@ add_arg_group!(s, "Targets and Sources")
         help = "number of source variables, must be between 1 and 5 (inclusive)"
         arg_type = Int
         nargs = '+'
-        range_tester = x -> 0 < x < 5
+        range_tester = x -> 0 < x < 6
         required = true
 end
 
