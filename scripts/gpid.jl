@@ -13,7 +13,7 @@ const s = ArgParseSettings(version="1.0", add_version=true)
         action = :store_true
 end
 
-add_arg_group(s, "Input and Output")
+add_arg_group!(s, "Input and Output")
 @add_arg_table s begin
     "--input", "-i"
         help = "input file path"
@@ -21,7 +21,7 @@ add_arg_group(s, "Input and Output")
         required = true
 end
 
-add_arg_group(s, "Discretization algorithm")
+add_arg_group!(s, "Discretization algorithm")
 @add_arg_table s begin
     "--algorithm", "-a"
         help = "discretization algorithm"
@@ -29,7 +29,7 @@ add_arg_group(s, "Discretization algorithm")
         default = MeanBinner()
 end
 
-add_arg_group(s, "Targets and Sources")
+add_arg_group!(s, "Targets and Sources")
 @add_arg_table s begin
     "--target", "-t"
         help = "target variable name"

@@ -38,7 +38,7 @@ function main()
             action = :store_true
     end
 
-    add_arg_group(s, "Input and Output")
+    add_arg_group!(s, "Input and Output")
     @add_arg_table s begin
         "directory"
             help = "path to a directory whose CSV files should be normalized"

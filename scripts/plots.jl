@@ -61,7 +61,7 @@ function main()
             action = :store_true
     end
 
-    add_arg_group(s, "Input and Output")
+    add_arg_group!(s, "Input and Output")
     @add_arg_table s begin
         "--input", "-i"
             help = "input file path"
@@ -69,7 +69,7 @@ function main()
             default = ""
     end
 
-    add_arg_group(s, "Lattice Settings")
+    add_arg_group!(s, "Lattice Settings")
     @add_arg_table s begin
         "--no-lattice"
             help = "skip lattice plots"
@@ -77,7 +77,7 @@ function main()
             action = :store_true
     end
 
-    add_arg_group(s, "gPID Plot Settings")
+    add_arg_group!(s, "gPID Plot Settings")
     @add_arg_table s begin
         "--no-gpid"
             help = "skip all gPID plots (implies --no-pi and --no-imin)"
