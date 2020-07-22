@@ -54,13 +54,13 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
         path = relpath(result[:input], datadir("sims"))
         result[:simdir] = dirname(path)
         input = result[:input] = basename(path)
-        algorithm = result[:algorithm]
-        sources = join(string.(result[:sources]), "_")
+        algorithm = string(result[:algorithm])
+        sources = join(string.(result[:sources]), "-")
 
-        filename = savename(Dict(:input => first(splitext(input)),
-                                 :target => target,
-                                 :algorithm => string(algorithm),
-                                 :sources => sources), "bson")
+        params = parse_savename(input)[2]
+        merge!(params, Dict("target" => target, "algorithm" => algorithm, "sources" => sources))
+
+        filename = savename(params, "bson")
 
         @tagsave joinpath(outdir, filename) result; safe=true
     end
