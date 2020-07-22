@@ -36,7 +36,7 @@ end
 bin!(df::DataFrame; kwargs...) = bin!(df, names(df)...; kwargs...)
 
 function bin(xs::AbstractArray{<:Real}, alg::DiscretizationAlgorithm)
-    encode(LinearDiscretizer(binedges(alg, xs)), xs)
+    encode(LinearDiscretizer(sort(binedges(alg, xs))), xs)
 end
 
 bin(xs::AbstractArray{<:Integer}, alg::DiscretizationAlgorithm) = bin(Array{Float64}(xs), alg)
