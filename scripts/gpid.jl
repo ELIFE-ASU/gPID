@@ -60,7 +60,7 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
         params = parse_savename(input)[2]
         merge!(params, Dict("target" => target, "algorithm" => algorithm, "sources" => sources))
 
-        filename = savename(params, "bson")
+        filename = savename(params, "bson"; digits=3, scientific=3)
 
         @tagsave joinpath(outdir, filename) result; safe=true
     end
