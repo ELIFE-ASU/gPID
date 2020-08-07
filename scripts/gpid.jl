@@ -58,6 +58,12 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
         sources = join(string.(result[:sources]), "-")
 
         params = parse_savename(input)[2]
+        for (param, value) in params
+            k = Symbol(param)
+            if !haskey(result, param)
+                result[k] = value
+            end
+        end
         merge!(params, Dict("target" => target, "algorithm" => algorithm, "sources" => sources))
 
         filename = savename(params, "bson"; digits=3, scientific=3)
