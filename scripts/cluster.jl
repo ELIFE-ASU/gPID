@@ -18,7 +18,7 @@ end
 
 sources(df) = sort(collect(Set(vcat(split.(replace.(string.(names(df)[8:end]), r"[:,{}\[\]]" => ""))...))))
 
-function prepare(dfs)
+function prepare(dfs; shift=true)
 	data = nothing
 	column_info = Vector{Any}[]
 	param_order = [:date, :psrecom, :pop, :gf, :μ, :payload]
@@ -31,7 +31,7 @@ function prepare(dfs)
 				push!(column_info, [Array(group[1, param_order]); allsources; String(name)])
 			end
 			new_columns = Array{Float64}(payloads)
-			new_columns .-= transpose(new_columns[1,:])
+			shift && (new_columns .-= transpose(new_columns[1,:]))
 			data = isnothing(data) ? new_columns : hcat(data, new_columns)
 		end
 	end
