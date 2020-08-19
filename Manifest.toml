@@ -180,14 +180,6 @@ git-tree-sha1 = "49e69db4a37a611f71f466f55d2bf516af42217f"
 uuid = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
 version = "1.15.1"
 
-[[Eolas]]
-deps = ["DataFrames", "Printf"]
-git-tree-sha1 = "22dcf54bdc1749e2f72e0a52224031edffad76d6"
-repo-rev = "master"
-repo-url = "https://github.com/dglmoore/Eolas.jl"
-uuid = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
-version = "0.1.0"
-
 [[FFMPEG]]
 deps = ["FFMPEG_jll", "x264_jll"]
 git-tree-sha1 = "9a73ffdc375be61b0e4516d83d880b265366fe1f"
@@ -284,6 +276,14 @@ deps = ["Base64", "Conda", "Dates", "InteractiveUtils", "JSON", "Markdown", "Mbe
 git-tree-sha1 = "d639acdd0c4c3409ec8996d2af405645b69410f0"
 uuid = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 version = "1.21.3"
+
+[[Imogen]]
+deps = ["DataFrames", "Distances", "NearestNeighbors", "Printf", "Random", "SpecialFunctions"]
+git-tree-sha1 = "377d7835afbf02e4c202fa4b68fa4c779ae01891"
+repo-rev = "master"
+repo-url = "https://github.com/dglmoore/Imogen.jl"
+uuid = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
+version = "0.1.0"
 
 [[IniFile]]
 deps = ["Test"]

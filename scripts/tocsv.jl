@@ -1,4 +1,4 @@
-using CSV, DrWatson, DataFrames, Discretizers, Eolas, Parameters
+using CSV, DrWatson, DataFrames, Discretizers, Imogen, Parameters
 
 const indir = datadir("results", "2020-01-05")
 const outdir = datadir("results", "2020-01-05", "csv")
@@ -17,7 +17,7 @@ function main()
             else
                 lattice = group.lattice[1]
                 df = DataFrame(replicate=String[], scenario=String[], payload=String[])
-                for name in Eolas.prettyname.(vertices(lattice))
+                for name in Imogen.prettyname.(vertices(lattice))
                     df[!, Symbol(name)] = Float64[]
                 end
                 df
@@ -29,7 +29,7 @@ function main()
                                                :scenario => scenario,
                                                :payload => p)
                     for vertex in vertices(row[:lattice])
-                        name = Symbol(Eolas.prettyname(vertex))
+                        name = Symbol(Imogen.prettyname(vertex))
                         data = getproperty(payload(vertex), s)
                         newrow[name] = data
                     end

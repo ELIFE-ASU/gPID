@@ -1,11 +1,11 @@
-using DataFrames, Eolas, RecipesBase
+using DataFrames, Imogen, RecipesBase
 using DelimitedFiles
 
 import IterTools: subsets
 
 include("bin.jl")
 
-function Eolas.pid(::Type{T}, df::DataFrame, stimulus, k::Int) where T
+function Imogen.pid(::Type{T}, df::DataFrame, stimulus, k::Int) where T
     naman = let allnames = names(df)
         allnames[allnames .!= stimulus]
     end
@@ -77,7 +77,7 @@ end
         for v in vertices(row.lattice)
             value = getproperty(payload(v), field)
             if !isapprox(value, zero(value), atol=1e-6)
-                push!(ef, (input=row.input, name=Eolas.prettyname(v), value=value))
+                push!(ef, (input=row.input, name=Imogen.prettyname(v), value=value))
             end
         end
     end
