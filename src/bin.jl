@@ -33,7 +33,7 @@ function bin!(df::DataFrame, cols::Symbol...; algo=EqualCountBinner(2), replace=
     df
 end
 
-bin!(df::DataFrame; kwargs...) = bin!(df, names(df)...; kwargs...)
+bin!(df::DataFrame; kwargs...) = bin!(df, Symbol.(names(df))...; kwargs...)
 
 function bin(xs::AbstractArray{<:Real}, alg::DiscretizationAlgorithm)
     encode(LinearDiscretizer(sort(binedges(alg, xs))), xs)

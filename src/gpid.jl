@@ -6,7 +6,7 @@ import IterTools: subsets
 include("bin.jl")
 
 function Imogen.pid(::Type{T}, df::DataFrame, stimulus, k::Int) where T
-    naman = let allnames = names(df)
+    naman = let allnames = Symbol.(names(df))
         allnames[allnames .!= stimulus]
     end
     results = Dict{Symbol,Any}[]
