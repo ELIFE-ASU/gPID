@@ -9,8 +9,6 @@ function loaddata()
 	
 	foreach(dfs) do df
 		filter!(r -> r.payload == "Pi", df)
-		select!(df, Not([:nsamp, :sampn, :gen, :mrcod, :pop2, :gfp2]))
-		rename!(df, Symbol("ps-recom") => :psrecom, :pop1 => :pop, :gfp1 => :gf, :mrnc => :μ)
 	end
 
 	dfs
