@@ -10,7 +10,7 @@ function tocsv(indir)
         rm(outdir; force=true, recursive=true)
     end
     mkpath(outdir)
-    data = collect_results(indir)
+    data = collect_results!(indir)
     alldata = DataFrame[]
     for group in groupby(data, :sources)
         outfile = joinpath(outdir, join(string.(group.sources[1]), "_") * ".csv")
