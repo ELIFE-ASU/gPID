@@ -10,7 +10,7 @@ function tocsv(indir)
         rm(outdir; force=true, recursive=true)
     end
     mkpath(outdir)
-    data = collect_results!(indir)
+    data = collect_results(indir)
     alldata = DataFrame[]
     for group in groupby(data, :sources)
         outfile = joinpath(outdir, join(string.(group.sources[1]), "_") * ".csv")
@@ -58,4 +58,5 @@ function tocsv(indir)
     CSV.write(joinpath(outdir, "alldata.csv"), vcat(alldata...))
 end
 
-tocsv("data/results")
+tocsv("data/results/10000")
+tocsv("data/results/100000")
