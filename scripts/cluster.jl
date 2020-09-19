@@ -1,131 +1,125 @@
-using CSV, DataFrames, Dates, Clustering, StatsPlots, Printf, DrWatson, StatsBase
+using ArgParse, CSV, DataFrames, Dates, Clustering, StatsPlots, Printf, DrWatson, StatsBase
+
+s = ArgParseSettings(version="1.0", add_version=true)
+
+@add_arg_table! s begin
+    "--gen", "-g"
+    help = "The number of generations for the data to be clustered"
+    arg_type = Int
+    required = true
+    "--prefix", "-p"
+    help = "Prepend a zero-value to each series"
+    action = :store_true
+end
 
 iscsv(f) = occursin(r"\.csv$", f)
 
-function loaddata()
-	filepaths = filter(iscsv, readdir(datadir("results", "csv"); join=true))
-	
-	dfs = filepaths .|> CSV.File .|> DataFrame
-	
-	foreach(dfs) do df
-		filter!(r -> r.payload == "Pi", df)
-	end
+ENV["GKSwstype"] = "png"
 
-	dfs
+function loaddata(gen)
+    df = DataFrame(CSV.File(datadir("results", "gen=$gen", "csv", "alldata.csv")))
+    filter!(r -> r.payload == "Pi" && r.replicate == 1.0, df)
+    select!(df, Not([:payload]))
+    sort!(df, [:replicate, :psrecom, :pop, :gf, :μ, :sources, :node, :sampgen])
 end
 
-sources(df) = sort(collect(Set(vcat(split.(replace.(string.(names(df)[8:end]), r"[:,{}\[\]]" => ""))...))))
-
-function prepare(dfs; shift=true)
-	data = nothing
-	column_info = Vector{Any}[]
-	param_order = [:date, :psrecom, :pop, :gf, :μ, :payload]
-	for (i, df) in enumerate(dfs)
-		allsources = "[" * join(sources(df), ", ") * "]"
-		for group in groupby(df, param_order)
-			sorted_group = sort(group, :sampgen)
-			payloads = select(sorted_group, Not([:sampgen; param_order]))
-			for name in names(payloads)
-				push!(column_info, [Array(group[1, param_order]); allsources; String(name)])
-			end
-			new_columns = Array{Float64}(payloads)
-			shift && (new_columns .-= transpose(new_columns[1,:]))
-			data = isnothing(data) ? new_columns : hcat(data, new_columns)
-		end
-	end
-	data, column_info, param_order
+function prepare(df; shift=true, prefix=false)
+    data = reshape(df.value, 10, nrow(df) ÷ 10)
+    if prefix
+        data = [zeros(eltype(data), 1, size(data,2)); data]
+    end
+    !shift ? data : data .- reshape(data[1,:], 1, size(data,2))
 end
 
 function cluster(data, k=2, epsilon = 0.01)
-	clusters = kmeans(data, k)
-	while maximum(clusters.costs) > epsilon
-		clusters = kmeans(data, k += 1)
-	end
-	clusters
+    clusters = kmeans(data, k)
+    while maximum(clusters.costs) > epsilon
+        clusters = kmeans(data, k += 1)
+    end
+    clusters
 end
 
-function saveclusters(data, column_info, param_order, clusters)
-	today = Dates.format(now(), "Y-mm-ddTHHMMSS")
-	if !isdir(plotsdir("classes", today))
-		mkpath(plotsdir("classes", today))
-	end
-	a, b = extrema(data)
-	subplots = []
-	for i in 1:length(clusters.counts)
-		cluster = data[:, clusters.assignments .== i]
-		lower_bound = clusters.centers[:, i] - minimum(cluster, dims=2)
-		upper_bound = maximum(cluster, dims=2) - clusters.centers[:, i]
-		p = plot(clusters.centers[:, i],
-		         ribbon=(lower_bound, upper_bound),
-		         linewidth=3, color=:gray, legend=false,
-		         xlim=(1, size(cluster, 1)), ylim=(a - 0.1, b + 0.1),
-		         title="Class $i ($(size(cluster, 2)) Members)", ylabel="ΔPi")
-		savefig(p, plotsdir("classes", today, (@sprintf "class_%02d.png" i)))
-		push!(subplots, p)
-	end
+function saveclusters(df, data, clusters, gen)
+    k = size(clusters.centers, 2)
 
-	p = plot(subplots..., size=(4200, 3600))
-	savefig(p, plotsdir("classes", today, "clusters.png"))
+    pdir = plotsdir("gen=$gen", "classes", "k=$k")
+    if !isdir(pdir)
+        mkpath(pdir)
+    end
 
-	if !isdir(datadir("results", "classes", today))
-		mkpath(datadir("results", "classes", today))
-	end
-	for i in 1:length(clusters.counts)
-		members = column_info[clusters.assignments .== 1]
-		df = DataFrame([
-			Date;
-			fill(Float64, length(param_order) - 2);
-			String;
-			String;
-			String
-		], [
-			param_order;
-			:allsources;
-			:node
-		])
-		foreach(member -> push!(df, member), members)
-		CSV.write(datadir("results", "classes", today, (@sprintf "class_%02d.csv" i)), df)
-	end
+    a, b = extrema(data)
+    subplots = []
+    for i in 1:length(clusters.counts)
+        cluster = data[:, clusters.assignments .== i]
+        lower_bound = clusters.centers[:, i] - minimum(cluster, dims=2)
+        upper_bound = maximum(cluster, dims=2) - clusters.centers[:, i]
+        p = plot(clusters.centers[:, i],
+                 ribbon=(lower_bound, upper_bound),
+                 linewidth=3, color=:gray, legend=false,
+                 xlim=(1, size(cluster, 1)), ylim=(a - 0.1, b + 0.1),
+                 title="Class $i ($(size(cluster, 2)) Members)", ylabel="ΔPi")
+        savefig(p, joinpath(pdir, (@sprintf "class_%02d.png" i)))
+        push!(subplots, p)
+    end
+
+    p = plot(subplots..., size=(4200, 3600))
+    savefig(p, joinpath(pdir, "clusters.png"))
+
+    rdir = datadir("results", "gen=$gen", "classes", "k=$k")
+    if !isdir(rdir)
+        mkpath(rdir)
+    end
+
+    df = select(df, Not([:sampgen, :value]))
+    unique!(df)
+    for i in 1:length(clusters.counts)
+        gf = df[clusters.assignments .== i, :]
+        CSV.write(joinpath(rdir, (@sprintf "class_%02d.csv" i)), gf)
+    end
 end
 
 function optimallycluster(data; k=2, epsilon=0.05, n=100)
-	clusters = kmeans(data, k)
-	totalcost = clusters.totalcost
-	maxcost = maximum(clusters.costs)
+    clusters = kmeans(data, k)
+    totalcost = clusters.totalcost
+    maxcost = maximum(clusters.costs)
 
-	while maxcost > epsilon
-		for i in 1:n
-			new_clusters = kmeans(data, k)
-			new_totalcost = new_clusters.totalcost
-			new_maxcost = maximum(new_clusters.costs)
+    while maxcost > epsilon
+        for i in 1:n
+            new_clusters = kmeans(data, k)
+            new_totalcost = new_clusters.totalcost
+            new_maxcost = maximum(new_clusters.costs)
 
-			if totalcost > new_totalcost || (totalcost == new_totalcost && maxcost > new_maxcost)
-				clusters = new_clusters
-				totalcost = new_totalcost
-				maxcost = new_maxcost
-			end
-		end
-		k += 1
-	end
-	clusters
+            if totalcost > new_totalcost || (totalcost == new_totalcost && maxcost > new_maxcost)
+                clusters = new_clusters
+                totalcost = new_totalcost
+                maxcost = new_maxcost
+            end
+        end
+        k += 1
+    end
+    clusters
 end
 
-function runall()
-	@info "Loading data"
-	dfs = loaddata()
+function main()
+    @unpack gen, prefix = parse_args(s)
 
-	@info "Constructing matrix"
-	data = prepare(dfs)
+    @info "Loading data"
+    df = loaddata(gen)
 
-	@info "Identifying fine-scale clusters"
-	clusters = cluster(data[1])
+    @info "Constructing matrix"
+    data = prepare(df; shift=true, prefix=prefix)
 
-	@info "Saving plots and CSVs"
-	saveclusters(data..., clusters)
+    @info "Identifying fine-scale clusters"
+    clusters = cluster(data)
 
-	@info "Identifying coarse-scale clusters"
-	clusters = optimallycluster(data[1])
+    @info "Saving plots and CSVs"
+    saveclusters(df, data, clusters, gen)
 
-	@info "Saving plots and CSVs"
-	saveclusters(data..., clusters)
+    @info "Identifying coarse-scale clusters"
+    clusters = optimallycluster(data)
+
+    @info "Saving plots and CSVs"
+    saveclusters(df, data, clusters, gen)
 end
+
+main()
