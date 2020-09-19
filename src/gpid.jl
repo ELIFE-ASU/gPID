@@ -26,6 +26,7 @@ function gpid(input::AbstractString, target::Symbol, numsources::Int;
     df = DataFrame(CSV.File(input; ignoreemptylines=true))
     dropmissing!(df)
     disallowmissing!(df)
+    select!(df, Not([:sim]))
 
     results = gpid!(df, target, numsources; algo=algo, verbose=verbose)
     foreach(r -> r[:input] = input, results)
