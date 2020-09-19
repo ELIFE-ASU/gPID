@@ -35,7 +35,6 @@ foreach(readdir(datadir("sims"); join=true)) do from
             scientific = 3
         )
         to = joinpath(dirname(from), base)
-        @info "Moving" from to
         mv(from, to)
     end
 end
