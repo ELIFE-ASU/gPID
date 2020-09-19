@@ -58,5 +58,5 @@ function tocsv(indir)
     CSV.write(joinpath(outdir, "alldata.csv"), vcat(alldata...))
 end
 
-tocsv("data/results/10000")
-tocsv("data/results/100000")
+tocsv("data/results/gen=10000")
+tocsv("data/results/gen=100000")
