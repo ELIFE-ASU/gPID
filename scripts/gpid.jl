@@ -1,4 +1,4 @@
-using ArgParse, Base.Meta, CSV, DrWatson, Parameters, Printf
+using ArgParse, Base.Meta, BSON, CSV, DrWatson, GZip, Parameters, Printf
 
 include(srcdir("gpid.jl"))
 
@@ -50,6 +50,8 @@ numsources = unique(sort(numsources))
 function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}}; verbose::Bool=true)
     verbose && @info "Saving results..." outdir
 
+    mkpath(outdir)
+
     for result in results
         path = relpath(result[:input], datadir("sims"))
         result[:simdir] = dirname(path)
@@ -66,9 +68,11 @@ function save(outdir::AbstractString, results::AbstractVector{Dict{Symbol,Any}};
         end
         merge!(params, Dict("target" => target, "algorithm" => algorithm, "sources" => sources))
 
-        filename = savename(params, "bson"; digits=3, scientific=3)
-
-        @tagsave joinpath(outdir, filename) result; safe=true
+        filename = joinpath(outdir, savename(params, "bson.gz"; digits=3, scientific=3))
+        io = GZip.open(filename, "w")
+        result = tag!(result, gitpath=projectdir(), storepatch=true, force=false, source=nothing)
+        bson(io, result)
+        close(io)
     end
 end
 

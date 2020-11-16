@@ -11,7 +11,7 @@ function runall()
         gpid(filename)
 	end
 
-    bsons = filter(s -> occursin(r"\.bson$", s), readdir(datadir("results"); join=true))
+    bsons = filter(s -> occursin(r"\.bson\.gz$", s), readdir(datadir("results"); join=true))
     params = map(p -> p[2], parse_savename.(bsons))
     for (param, bson) in zip(params, bsons)
         dir = datadir("results", "gen=$(param["gen"])")
