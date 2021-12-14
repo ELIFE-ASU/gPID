@@ -25,7 +25,7 @@ function get_results(folder;
         allfiles = joinpath.(Ref(folder), readdir(folder))
     end
 
-    n = 0 # new entries added
+    n = 0
     existing_files = "path" in string.(names(df)) ? df[:,:path] : ()
     for file ∈ allfiles
         isgz = last(splitext(file)) == ".gz"
@@ -34,9 +34,7 @@ function get_results(folder;
         else
             DrWatson.is_valid_file(file, valid_filetypes) || continue
         end
-        # maybe use relative path
         file = rpath === nothing ? file : relpath(file, rpath)
-        #already added?
         file ∈ existing_files && continue
 
         if isgz
@@ -47,7 +45,6 @@ function get_results(folder;
             data = rpath === nothing ? wload(file) : wload(joinpath(rpath, file))
         end
         df_new = DrWatson.to_data_row(data, file; kwargs...)
-        #add filename
         df_new[!, :path] .= file
 
         df = DrWatson.merge_dataframes!(df, df_new)
@@ -118,5 +115,4 @@ function tocsv(indir)
     close(io)
 end
 
-tocsv("data/results/gen=10000")
-tocsv("data/results/gen=100000")
+tocsv("data/results")
